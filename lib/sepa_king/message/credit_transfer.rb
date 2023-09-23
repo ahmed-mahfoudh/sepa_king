@@ -5,7 +5,7 @@ module SEPA
     self.account_class = DebtorAccount
     self.transaction_class = CreditTransferTransaction
     self.xml_main_tag = 'CstmrCdtTrfInitn'
-    self.known_schemas = [ PAIN_001_003_03, PAIN_001_002_03, PAIN_001_001_03, PAIN_001_001_03_CH_02 ]
+    self.known_schemas = [ PAIN_001_003_03, PAIN_001_002_03, PAIN_001_001_09, PAIN_001_001_09_CH_03, PAIN_001_001_03_CH_02 ]
 
   private
     # Find groups of transactions which share the same values of some attributes
@@ -27,13 +27,19 @@ module SEPA
           builder.NbOfTxs(transactions.length)
           builder.CtrlSum('%.2f' % amount_total(transactions))
           builder.PmtTpInf do
-            unless schema_name == PAIN_001_001_03_CH_02 && group[:service_level] == 'SEPA'
+            unless [PAIN_001_001_09_CH_03, PAIN_001_001_03_CH_02].include?(schema_name) && group[:service_level] == 'SEPA'
               builder.SvcLvl do
                 builder.Cd(group[:service_level])
               end
             end
           end
-          builder.ReqdExctnDt(group[:requested_date].iso8601)
+          if [PAIN_001_001_09, PAIN_001_001_09_CH_03].include?(schema_name)
+            builder.ReqdExctnDt do
+              builder.Dt(group[:requested_date].iso8601)
+            end
+          else
+            builder.ReqdExctnDt(group[:requested_date].iso8601)
+          end
           builder.Dbtr do
             builder.Nm(account.name)
           end
@@ -45,7 +51,7 @@ module SEPA
           builder.DbtrAgt do
             builder.FinInstnId do
               if account.bic
-                builder.BIC(account.bic)
+                builder.__send__([PAIN_001_001_09, PAIN_001_001_09_CH_03].include?(schema_name) ? 'BICFI' : 'BIC', account.bic)
               else
                 builder.Othr do
                   builder.Id('NOTPROVIDED')
@@ -71,7 +77,7 @@ module SEPA
           builder.EndToEndId(transaction.reference)
         end
         builder.Amt do
-          if schema_name == PAIN_001_001_03_CH_02
+          if [PAIN_001_001_09_CH_03, PAIN_001_001_03_CH_02].include?(schema_name)
             builder.InstdAmt('%.2f' % transaction.amount, Ccy: 'CHF')
           else
             builder.InstdAmt('%.2f' % transaction.amount, Ccy: 'EUR')
@@ -80,7 +86,7 @@ module SEPA
         if transaction.bic
           builder.CdtrAgt do
             builder.FinInstnId do
-              builder.BIC(transaction.bic)
+              builder.__send__([PAIN_001_001_09, PAIN_001_001_09_CH_03].include?(schema_name) ? 'BICFI' : 'BIC', transaction.bic)
             end
           end
         end
