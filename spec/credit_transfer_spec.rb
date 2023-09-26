@@ -83,8 +83,12 @@ describe SEPA::CreditTransfer do
           sct
         end
 
-        it 'should validate against pain.001.001.03' do
-          expect(subject.to_xml('pain.001.001.03')).to validate_against('pain.001.001.03.xsd')
+        it 'should validate against pain.001.001.09' do
+          expect(subject.to_xml('pain.001.001.09')).to validate_against('pain.001.001.09.xsd')
+        end
+
+        it 'should validate against pain.001.001.09.ch.03' do
+          expect(subject.to_xml('pain.001.001.09.ch.03')).to validate_against('pain.001.001.09.ch.03.xsd')
         end
 
         it 'should validate against pain.001.001.03.ch.02' do
@@ -203,12 +207,12 @@ describe SEPA::CreditTransfer do
           sct.add_transaction(credit_transfer_transaction.merge requested_date: Date.today + 2)
           sct.add_transaction(credit_transfer_transaction.merge requested_date: Date.today + 2)
 
-          sct.to_xml
+          sct.to_xml('pain.001.001.09')
         end
 
         it 'should contain two payment_informations with <ReqdExctnDt>' do
-          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[1]/ReqdExctnDt', (Date.today + 1).iso8601)
-          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[2]/ReqdExctnDt', (Date.today + 2).iso8601)
+          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[1]/ReqdExctnDt/Dt', (Date.today + 1).iso8601)
+          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[2]/ReqdExctnDt/Dt', (Date.today + 2).iso8601)
 
           expect(subject).not_to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[3]')
         end
@@ -227,7 +231,7 @@ describe SEPA::CreditTransfer do
           sct.add_transaction(credit_transfer_transaction.merge batch_booking: true)
           sct.add_transaction(credit_transfer_transaction.merge batch_booking: true)
 
-          sct.to_xml
+          sct.to_xml('pain.001.001.09')
         end
 
         it 'should contain two payment_informations with <BtchBookg>' do
@@ -247,20 +251,20 @@ describe SEPA::CreditTransfer do
           sct.add_transaction(credit_transfer_transaction.merge requested_date: Date.today + 2, batch_booking: false, amount: 4)
           sct.add_transaction(credit_transfer_transaction.merge requested_date: Date.today + 2, batch_booking: true,  amount: 8)
 
-          sct.to_xml
+          sct.to_xml('pain.001.001.09')
         end
 
         it 'should contain multiple payment_informations' do
-          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[1]/ReqdExctnDt', (Date.today + 1).iso8601)
+          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[1]/ReqdExctnDt/Dt', (Date.today + 1).iso8601)
           expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[1]/BtchBookg', 'false')
 
-          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[2]/ReqdExctnDt', (Date.today + 1).iso8601)
+          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[2]/ReqdExctnDt/Dt', (Date.today + 1).iso8601)
           expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[2]/BtchBookg', 'true')
 
-          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[3]/ReqdExctnDt', (Date.today + 2).iso8601)
+          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[3]/ReqdExctnDt/Dt', (Date.today + 2).iso8601)
           expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[3]/BtchBookg', 'false')
 
-          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[4]/ReqdExctnDt', (Date.today + 2).iso8601)
+          expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[4]/ReqdExctnDt/Dt', (Date.today + 2).iso8601)
           expect(subject).to have_xml('//Document/CstmrCdtTrfInitn/PmtInf[4]/BtchBookg', 'true')
         end
 
